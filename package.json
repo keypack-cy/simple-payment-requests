@@ -1,0 +1,30 @@
+{
+  "name": "payments-request-lib",
+  "version": "1.0.0",
+  "description": "A comprehensive payment request generation library for businesses and freelancers",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "node test/test.js",
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "frontend": "node server.js",
+    "frontend:dev": "nodemon server.js"
+  },
+  "keywords": [
+    "payment-request",
+    "billing",
+    "payment",
+    "business",
+    "freelance",
+    "pdf"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {
+    "jspdf": "^2.5.1",
+    "express": "^4.21.2",
+    "moment": "^2.29.4",
+    "uuid": "^9.0.1",
+    "fs-extra": "^11.1.1"
+  }
+}
