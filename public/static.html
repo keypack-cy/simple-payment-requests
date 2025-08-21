@@ -6,6 +6,7 @@
     <title>Simple Payment Request - Static Version</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-invoice-template@1.4.0/dist/jspdf-invoice-template.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -802,132 +803,124 @@
 
         function generatePDF() {
             try {
-                // Create new jsPDF document
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF();
-                
                 // Calculate total
                 let totalAmount = 0;
-                selectedItems.forEach(item => {
-                    totalAmount += item.unitPrice * item.quantity;
+                const tableBody = selectedItems.map(item => {
+                    const itemTotal = item.unitPrice * item.quantity;
+                    totalAmount += itemTotal;
+                    return [
+                        item.item.name,
+                        item.item.size,
+                        item.quantity.toString(),
+                        `€${item.unitPrice.toFixed(2)}`,
+                        `€${itemTotal.toFixed(2)}`
+                    ];
                 });
                 
-                // Header
-                doc.setFillColor(52, 152, 219); // Blue
-                doc.rect(0, 0, 210, 40, 'F');
-                
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(24);
-                doc.text('💰 PAYMENT REQUEST', 105, 20, { align: 'center' });
-                doc.setFontSize(12);
-                doc.text('Professional Payment Request System', 105, 30, { align: 'center' });
-                
-                // Reset text color
-                doc.setTextColor(0, 0, 0);
-                
-                // Client Information Section
-                doc.setFontSize(16);
-                doc.setFillColor(236, 240, 241); // Light gray
-                doc.rect(10, 50, 190, 30, 'F');
-                doc.text('Client Information', 15, 60);
-                
-                doc.setFontSize(10);
-                doc.text(`Name: ${selectedClient.name}`, 15, 75);
-                doc.text(`Phone: ${selectedClient.phone}`, 15, 82);
-                doc.text(`Email: ${selectedClient.email}`, 15, 89);
-                doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 110, 75);
-                
-                // Payment Terms Section
-                doc.setFontSize(16);
-                doc.setFillColor(236, 240, 241);
-                doc.rect(10, 90, 190, 20, 'F');
-                doc.text('Payment Terms', 15, 100);
-                
-                doc.setFontSize(10);
-                doc.text(selectedTerms, 15, 110);
-                
-                // Items Table
-                doc.setFontSize(16);
-                doc.setFillColor(236, 240, 241);
-                doc.rect(10, 120, 190, 20, 'F');
-                doc.text('Items & Pricing', 15, 130);
-                
-                // Prepare table data
-                const tableData = selectedItems.map(item => [
-                    item.item.name,
-                    item.item.size,
-                    item.quantity.toString(),
-                    `€${item.unitPrice.toFixed(2)}`,
-                    `€${(item.unitPrice * item.quantity).toFixed(2)}`
-                ]);
-                
-                // Add total row
-                tableData.push(['', '', '', 'TOTAL:', `€${totalAmount.toFixed(2)}`]);
-                
-                // Create professional table
-                doc.autoTable({
-                    startY: 140,
-                    head: [['Item', 'Size', 'Qty', 'Unit Price', 'Total']],
-                    body: tableData,
-                    theme: 'grid',
-                    headStyles: {
-                        fillColor: [52, 152, 219],
-                        textColor: [255, 255, 255],
-                        fontSize: 11,
-                        fontStyle: 'bold'
-                    },
-                    bodyStyles: {
-                        fontSize: 10
-                    },
-                    alternateRowStyles: {
-                        fillColor: [248, 249, 250]
-                    },
-                    styles: {
-                        cellPadding: 5,
-                        lineWidth: 0.1
-                    },
-                    columnStyles: {
-                        0: { cellWidth: 60 }, // Item name
-                        1: { cellWidth: 25 }, // Size
-                        2: { cellWidth: 20 }, // Quantity
-                        3: { cellWidth: 30 }, // Unit price
-                        4: { cellWidth: 30 }  // Total
-                    },
-                    didParseCell: function(data) {
-                        // Style the total row
-                        if (data.row.index === tableData.length - 1) {
-                            data.cell.styles.fontStyle = 'bold';
-                            data.cell.styles.fontSize = 12;
-                            data.cell.styles.fillColor = [39, 174, 96]; // Green
-                            data.cell.styles.textColor = [255, 255, 255];
+                // Prepare invoice data for the template
+                const invoiceData = {
+                    outputType: "save",
+                    returnJsPDFDocObject: true,
+                    fileName: `payment-request-${selectedClient.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}`,
+                    orientationLandscape: false,
+                    compress: true,
+                    logo: {
+                        type: "JPG", // or "PNG"
+                        width: 53.33, // aspect ratio = width/height
+                        height: 26.66,
+                        base64: "",
+                        margin: {
+                            top: 0, // negative or positive num, from the current position
+                            left: 0 // negative or positive num, from the current position
                         }
-                    }
-                });
+                    },
+                    business: {
+                        name: "Your Business Name",
+                        address: "Business Address",
+                        phone: "Phone Number",
+                        email: "email@example.com",
+                        website: "www.yourbusiness.com",
+                    },
+                    contact: {
+                        label: "Payment Request issued for:",
+                        name: selectedClient.name,
+                        address: "Client Address",
+                        phone: selectedClient.phone,
+                        email: selectedClient.email,
+                        otherInfo: selectedTerms,
+                    },
+                    invoice: {
+                        label: "Payment Request #: ",
+                        num: new Date().getTime().toString().slice(-6),
+                        invDate: `Payment Request Date: ${new Date().toLocaleDateString('en-GB')}`,
+                        headerBorder: false,
+                        tableBodyBorder: false,
+                        header: [
+                            { 
+                                title: "Item", 
+                                style: { 
+                                    width: 40 
+                                } 
+                            }, 
+                            { 
+                                title: "Size", 
+                                style: { 
+                                    width: 20 
+                                } 
+                            }, 
+                            { 
+                                title: "Quantity", 
+                                style: { 
+                                    width: 20 
+                                } 
+                            }, 
+                            { 
+                                title: "Unit Price", 
+                                style: { 
+                                    width: 30 
+                                } 
+                            }, 
+                            { 
+                                title: "Total", 
+                                style: { 
+                                    width: 30 
+                                } 
+                            }
+                        ],
+                        table: tableBody,
+                        additionalRows: [{
+                            col1: 'Total:',
+                            col2: `€${totalAmount.toFixed(2)}`,
+                            col3: 'EUR',
+                            style: {
+                                fontSize: 14,
+                                fontStyle: 'bold',
+                                fillColor: [39, 174, 96]
+                            }
+                        }],
+                        invDescLabel: "Payment Terms:",
+                        invDesc: selectedTerms,
+                    },
+                    footer: {
+                        text: "The payment is due upon receipt. Thank you for your business!",
+                    },
+                    pageEnable: true,
+                    pageLabel: "Page",
+                };
                 
-                // Footer
-                const finalY = doc.lastAutoTable.finalY + 20;
-                doc.setFillColor(52, 152, 219);
-                doc.rect(10, finalY, 190, 25, 'F');
-                
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(10);
-                doc.text('Thank you for your business!', 105, finalY + 10, { align: 'center' });
-                doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, 105, finalY + 18, { align: 'center' });
-                
-                // Save PDF
-                const filename = `payment-request-${selectedClient.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
-                doc.save(filename);
+                // Generate PDF using the invoice template
+                const pdfObject = jsPDFInvoiceTemplate.default(invoiceData);
                 
                 // Show success message
                 const result = document.getElementById('result');
                 result.className = 'result success';
                 result.style.display = 'block';
                 result.innerHTML = `
-                    <h3>✅ Professional Invoice PDF Generated!</h3>
+                    <h3>✅ Professional Payment Request PDF Generated!</h3>
                     <p><strong>Client:</strong> ${selectedClient.name}</p>
                     <p><strong>Total Amount:</strong> €${totalAmount.toFixed(2)}</p>
-                    <p><strong>PDF Downloaded:</strong> ${filename}</p>
-                    <p style="font-size: 0.9rem; opacity: 0.8;">This PDF has a professional invoice design with proper tables and formatting.</p>
+                    <p><strong>PDF Downloaded:</strong> ${invoiceData.fileName}.pdf</p>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">This PDF uses a professional invoice template customized for payment requests.</p>
                 `;
                 
             } catch (error) {
@@ -939,6 +932,7 @@
                     <h3>❌ Error Generating PDF</h3>
                     <p>${error.message}</p>
                 `;
+                console.log('Full error:', error);
             }
         }
 
