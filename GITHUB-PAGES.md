@@ -9,9 +9,9 @@ Your payment request system now has **TWO versions**:
 
 ## 📁 **Files for GitHub Pages**
 
+- **`index.html`** - Root redirect page (GitHub Pages entry point)
 - **`public/static.html`** - Main static application
-- **`public/index-github-pages.html`** - Redirect page
-- **`bags.json`** - Bag inventory data
+- **`bags-github-pages.json`** - Bag inventory data (accessible from root)
 - **All other files** - Documentation and source code
 
 ## 🔧 **Setting Up GitHub Pages**
@@ -51,7 +51,7 @@ Your payment request system now has **TWO versions**:
 ## 🎨 **Customization**
 
 ### Change Bag Inventory
-Edit `bags.json` and push to GitHub:
+Edit `bags-github-pages.json` and push to GitHub:
 ```json
 {
   "bags": [
