@@ -502,7 +502,7 @@
 
         async function loadBags() {
             try {
-                const response = await fetch('/bags.json');
+                const response = await fetch('./bags-github-pages.json');
                 const data = await response.json();
                 
                 if (data.bags && Array.isArray(data.bags)) {

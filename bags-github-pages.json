@@ -1,0 +1,155 @@
+{
+  "bags": [
+    {
+      "id": "gb-blue-45x48",
+      "name": "Garbage Bags - Blue",
+      "type": "garbage",
+      "color": "blue",
+      "size": "45x48",
+      "price": 15.99,
+      "colorHex": "#3498db",
+      "description": "Heavy-duty garbage bags in blue",
+      "units": "pack",
+      "packSize": 50
+    },
+    {
+      "id": "gb-green-45x48",
+      "name": "Garbage Bags - Green",
+      "type": "garbage",
+      "color": "green",
+      "size": "45x48",
+      "price": 15.99,
+      "colorHex": "#27ae60",
+      "description": "Heavy-duty garbage bags in green",
+      "units": "pack",
+      "packSize": 50
+    },
+    {
+      "id": "gb-pink-45x48",
+      "name": "Garbage Bags - Pink",
+      "type": "garbage",
+      "color": "pink",
+      "size": "45x48",
+      "price": 15.99,
+      "colorHex": "#e91e63",
+      "description": "Heavy-duty garbage bags in pink",
+      "units": "pack",
+      "packSize": 50
+    },
+    {
+      "id": "gb-brown-45x48",
+      "name": "Garbage Bags - Brown",
+      "type": "garbage",
+      "color": "brown",
+      "size": "45x48",
+      "price": 15.99,
+      "colorHex": "#8d6e63",
+      "description": "Heavy-duty garbage bags in brown",
+      "units": "pack",
+      "packSize": 50
+    },
+    {
+      "id": "fb-blue-30x35",
+      "name": "Freezer Bags - Blue",
+      "type": "freezer",
+      "color": "blue",
+      "size": "30x35",
+      "price": 12.99,
+      "colorHex": "#3498db",
+      "description": "Freezer-safe bags in blue",
+      "units": "pack",
+      "packSize": 100
+    },
+    {
+      "id": "fb-green-30x35",
+      "name": "Freezer Bags - Green",
+      "type": "freezer",
+      "color": "green",
+      "size": "30x35",
+      "price": 12.99,
+      "colorHex": "#27ae60",
+      "description": "Freezer-safe bags in green",
+      "units": "pack",
+      "packSize": 100
+    },
+    {
+      "id": "fb-pink-30x35",
+      "name": "Freezer Bags - Pink",
+      "type": "freezer",
+      "color": "pink",
+      "size": "30x35",
+      "price": 12.99,
+      "colorHex": "#e91e63",
+      "description": "Freezer-safe bags in pink",
+      "units": "pack",
+      "packSize": 100
+    },
+    {
+      "id": "fb-brown-30x35",
+      "name": "Freezer Bags - Brown",
+      "type": "freezer",
+      "color": "brown",
+      "size": "30x35",
+      "price": 12.99,
+      "colorHex": "#8d6e63",
+      "description": "Freezer-safe bags in brown",
+      "units": "pack",
+      "packSize": 100
+    },
+    {
+      "id": "gb-garden-blue-60x70",
+      "name": "Garden Bags - Blue",
+      "type": "garden",
+      "color": "blue",
+      "size": "60x70",
+      "price": 18.99,
+      "colorHex": "#3498db",
+      "description": "Large garden waste bags in blue",
+      "units": "pack",
+      "packSize": 25
+    },
+    {
+      "id": "gb-garden-green-60x70",
+      "name": "Garden Bags - Green",
+      "type": "garden",
+      "color": "green",
+      "size": "60x70",
+      "price": 18.99,
+      "colorHex": "#27ae60",
+      "description": "Large garden waste bags in green",
+      "units": "pack",
+      "packSize": 25
+    },
+    {
+      "id": "gb-garden-pink-60x70",
+      "name": "Garden Bags - Pink",
+      "type": "garden",
+      "color": "pink",
+      "size": "60x70",
+      "price": 18.99,
+      "colorHex": "#e91e63",
+      "description": "Large garden waste bags in pink",
+      "units": "pack",
+      "packSize": 25
+    },
+    {
+      "id": "gb-garden-brown-60x70",
+      "name": "Garden Bags - Brown",
+      "type": "garden",
+      "color": "brown",
+      "size": "60x70",
+      "price": 18.99,
+      "colorHex": "#8d6e63",
+      "description": "Large garden waste bags in brown",
+      "units": "pack",
+      "packSize": 25
+    }
+  ],
+  "metadata": {
+    "version": "1.0",
+    "lastUpdated": "2024-01-01",
+    "description": "Bag inventory for payment request system",
+    "currency": "EUR",
+    "units": "pack"
+  }
+}
