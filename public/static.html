@@ -262,6 +262,186 @@
             -ms-user-select: none;
         }
 
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 90vh;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 20px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 0 0 15px 15px;
+            text-align: right;
+            border-top: 1px solid #e9ecef;
+        }
+
+        /* PDF Preview Styles */
+        .pdf-preview {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .preview-header {
+            background: #3498db;
+            color: white;
+            padding: 20px;
+            margin: -20px -20px 20px -20px;
+            border-radius: 8px 8px 0 0;
+            text-align: center;
+        }
+
+        .preview-header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+
+        .preview-header p {
+            margin: 5px 0 0 0;
+            opacity: 0.9;
+        }
+
+        .preview-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #3498db;
+        }
+
+        .preview-section h3 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 16px;
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .preview-item {
+            margin-bottom: 8px;
+        }
+
+        .preview-item strong {
+            color: #34495e;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+
+        .preview-table th {
+            background: #3498db;
+            color: white;
+            padding: 12px 8px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .preview-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #ecf0f1;
+            text-align: center;
+        }
+
+        .preview-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        .preview-total {
+            background: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin: 20px 0;
+        }
+
+        .preview-footer {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            margin: 20px -20px -20px -20px;
+            border-radius: 0 0 8px 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
         .payment-terms {
             background: #f8f9fa;
             padding: 20px;
@@ -487,6 +667,7 @@
 
                 <div class="form-group">
                     <button type="button" class="btn btn-secondary" onclick="previousStep()">Previous Step</button>
+                    <button type="button" class="btn" onclick="previewPDF()" style="background: linear-gradient(135deg, #9b59b6, #8e44ad);">👁️ Preview PDF</button>
                     <button type="button" class="btn btn-success" onclick="generatePDF()">Generate PDF</button>
                 </div>
 
@@ -505,6 +686,27 @@
             <div id="pdfTemplate" style="display: none;">
                 <!-- This will be used for future enhancements -->
             </div>
+
+            <!-- Preview Modal -->
+            <div id="previewModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>📄 PDF Preview</h2>
+                        <span class="close" onclick="closePreview()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <div id="previewContent" class="pdf-preview">
+                            <!-- Preview content will be generated here -->
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closePreview()">Close</button>
+                        <button type="button" class="btn btn-success" onclick="generatePDF()">Generate PDF</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
         </div>
     </div>
 
@@ -800,6 +1002,109 @@
             summary.innerHTML = summaryHTML;
         }
 
+        function previewPDF() {
+            try {
+                // Calculate total
+                let totalAmount = 0;
+                selectedItems.forEach(item => {
+                    totalAmount += item.unitPrice * item.quantity;
+                });
+                
+                // Generate preview HTML
+                const previewHTML = `
+                    <div class="preview-header">
+                        <h1>💰 PAYMENT REQUEST</h1>
+                        <p>Professional Payment Request System</p>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <h3>Client Information</h3>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <strong>Name:</strong> ${selectedClient.name}
+                            </div>
+                            <div class="preview-item">
+                                <strong>Phone:</strong> ${selectedClient.phone}
+                            </div>
+                            <div class="preview-item">
+                                <strong>Email:</strong> ${selectedClient.email}
+                            </div>
+                            <div class="preview-item">
+                                <strong>Date:</strong> ${new Date().toLocaleDateString('en-GB')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <h3>Payment Request Details</h3>
+                        <div class="preview-grid">
+                            <div class="preview-item">
+                                <strong>Request #:</strong> ${new Date().getTime().toString().slice(-6)}
+                            </div>
+                            <div class="preview-item">
+                                <strong>Payment Terms:</strong> ${selectedTerms}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <h3>Items & Pricing</h3>
+                        <table class="preview-table">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Size</th>
+                                    <th>Qty</th>
+                                    <th>Unit Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${selectedItems.map(item => `
+                                    <tr>
+                                        <td>${item.item.name}</td>
+                                        <td>${item.item.size}</td>
+                                        <td>${item.quantity}</td>
+                                        <td>€${item.unitPrice.toFixed(2)}</td>
+                                        <td>€${(item.unitPrice * item.quantity).toFixed(2)}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                        
+                        <div class="preview-total">
+                            TOTAL AMOUNT: €${totalAmount.toFixed(2)}
+                        </div>
+                    </div>
+                    
+                    <div class="preview-footer">
+                        Thank you for your business! Payment is due upon receipt.<br>
+                        Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}
+                    </div>
+                `;
+                
+                // Display preview
+                document.getElementById('previewContent').innerHTML = previewHTML;
+                document.getElementById('previewModal').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error generating preview:', error);
+                alert('Error generating preview: ' + error.message);
+            }
+        }
+        
+        function closePreview() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('previewModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        }
+        
         function generatePDF() {
             try {
                 // Create new jsPDF document
