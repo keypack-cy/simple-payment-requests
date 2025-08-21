@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Payment Request - Static Version</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+        }
+
+        .step {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e1e8ed;
+            color: #666;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin: 0 10px;
+            transition: all 0.3s ease;
+        }
+
+        .step.active {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        .step.completed {
+            background: #27ae60;
+            color: white;
+        }
+
+        .step-content {
+            display: none;
+        }
+
+        .step-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+        }
+
+        .clients-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e1e8ed;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .client-item {
+            padding: 15px;
+            border-bottom: 1px solid #e1e8ed;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .client-item:hover {
+            background-color: #f8f9fa;
+        }
+
+        .client-item.selected {
+            background-color: #e3f2fd;
+            border-left: 4px solid #3498db;
+        }
+
+        .client-item:last-child {
+            border-bottom: none;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .item-card {
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .item-card:hover {
+            border-color: #3498db;
+            transform: translateY(-2px);
+        }
+
+        .item-card.selected {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+        }
+
+        .item-card h3 {
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+
+        .item-card .size {
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .item-card .price {
+            font-weight: bold;
+            color: #27ae60;
+            font-size: 1.2rem;
+        }
+
+        .quantity-input {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .input-row {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .input-row label {
+            font-size: 0.9rem;
+            margin-right: 10px;
+            min-width: 70px;
+        }
+
+        .input-row input {
+            width: 80px;
+            text-align: center;
+            margin: 0;
+        }
+
+        .payment-terms {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .payment-terms h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+
+        .terms-option {
+            margin-bottom: 15px;
+            padding: 15px;
+            border: 2px solid #e1e8ed;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .terms-option:hover {
+            border-color: #3498db;
+        }
+
+        .terms-option.selected {
+            border-color: #3498db;
+            background-color: #e3f2fd;
+        }
+
+        .terms-option h4 {
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+
+        .terms-option p {
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .summary {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .summary h3 {
+            margin-bottom: 15px;
+            color: #27ae60;
+        }
+
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 10px 0;
+            border-bottom: 1px solid #d4edda;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: #27ae60;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            background: #e8f5e8;
+            border: 1px solid #27ae60;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .result.success {
+            background: #e8f5e8;
+            border-color: #27ae60;
+        }
+
+        .result.error {
+            background: #ffeaea;
+            border-color: #e74c3c;
+        }
+
+        .add-client-form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .add-client-form.active {
+            display: block;
+        }
+
+        .export-all {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .note {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💰 Simple Payment Request</h1>
+            <p>Easy payment requests for your clients (Static Version)</p>
+        </div>
+
+        <div class="content">
+            <div class="note">
+                <strong>ℹ️ Note:</strong> This is the static version that works on GitHub Pages. 
+                All data is stored locally in your browser and PDFs are generated client-side.
+            </div>
+
+            <!-- Step Indicator -->
+            <div class="step-indicator">
+                <div class="step active" id="step1">1</div>
+                <div class="step" id="step2">2</div>
+                <div class="step" id="step3">3</div>
+                <div class="step" id="step4">4</div>
+            </div>
+
+            <!-- Step 1: Select Client -->
+            <div class="step-content active" id="step1-content">
+                <h2>Step 1: Select a Client</h2>
+                <p>Choose an existing client or add a new one:</p>
+                
+                <button type="button" class="btn" onclick="toggleAddClient()">+ Add New Client</button>
+                
+                <div class="add-client-form" id="addClientForm">
+                    <div class="form-group">
+                        <label for="newClientName">Client Name:</label>
+                        <input type="text" id="newClientName" placeholder="Enter client name">
+                    </div>
+                    <div class="form-group">
+                        <label for="newClientPhone">Phone Number:</label>
+                        <input type="tel" id="newClientPhone" placeholder="Enter phone number">
+                    </div>
+                    <div class="form-group">
+                        <label for="newClientEmail">Email:</label>
+                        <input type="email" id="newClientEmail" placeholder="Enter email address">
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="addNewClient()">Save Client</button>
+                </div>
+
+                <div class="clients-list" id="clientsList">
+                    <!-- Clients will be loaded here -->
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-success" onclick="nextStep()" id="nextStep1" disabled>Next Step</button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Items -->
+            <div class="step-content" id="step2-content">
+                <h2>Step 2: Select Items</h2>
+                <p>Choose the items and quantities you want to charge for:</p>
+                
+                <div class="items-grid" id="itemsGrid">
+                    <!-- Items will be generated here -->
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep()">Previous Step</button>
+                    <button type="button" class="btn btn-success" onclick="nextStep()" id="nextStep2" disabled>Next Step</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Payment Terms -->
+            <div class="step-content" id="step3-content">
+                <h2>Step 3: Payment Terms</h2>
+                <p>Select how you want to be paid:</p>
+                
+                <div class="payment-terms">
+                    <div class="terms-option" onclick="selectTerms(this, '50% deposit now, 50% on completion')">
+                        <h4>50% Deposit Now</h4>
+                        <p>Client pays 50% upfront, remaining 50% when work is completed</p>
+                    </div>
+                    <div class="terms-option" onclick="selectTerms(this, 'Full payment on completion')">
+                        <h4>Full Payment on Completion</h4>
+                        <p>Client pays the full amount when all work is finished</p>
+                    </div>
+                    <div class="terms-option" onclick="selectTerms(this, 'Net 30 days')">
+                        <h4>Net 30 Days</h4>
+                        <p>Client pays the full amount within 30 days of receiving the request</p>
+                    </div>
+                    <div class="terms-option" onclick="selectTerms(this, 'Due on receipt')">
+                        <h4>Due on Receipt</h4>
+                        <p>Client pays immediately upon receiving the payment request</p>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep()">Previous Step</button>
+                    <button type="button" class="btn btn-success" onclick="nextStep()" id="nextStep3" disabled>Next Step</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Review & Generate -->
+            <div class="step-content" id="step4-content">
+                <h2>Step 4: Review & Generate</h2>
+                <p>Review your payment request and generate the PDF:</p>
+                
+                <div class="summary" id="requestSummary">
+                    <!-- Summary will be generated here -->
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-secondary" onclick="previousStep()">Previous Step</button>
+                    <button type="button" class="btn btn-success" onclick="generatePDF()">Generate PDF</button>
+                </div>
+
+                <div class="result" id="result"></div>
+            </div>
+
+            <!-- Export All PDFs -->
+            <div class="export-all">
+                <h3>📁 Local Storage</h3>
+                <p>Your data is stored locally in your browser:</p>
+                <button type="button" class="btn btn-secondary" onclick="exportData()">Export Data</button>
+                <button type="button" class="btn btn-secondary" onclick="clearData()">Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedClient = null;
+        let selectedItems = [];
+        let selectedTerms = '';
+        let clients = [];
+        let items = [];
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            loadClients();
+            loadBags();
+        });
+
+        async function loadBags() {
+            try {
+                const response = await fetch('/bags.json');
+                const data = await response.json();
+                
+                if (data.bags && Array.isArray(data.bags)) {
+                    items = data.bags.map(bag => ({
+                        name: bag.name,
+                        price: bag.price,
+                        color: bag.colorHex,
+                        size: bag.size
+                    }));
+                    console.log(`Loaded ${items.length} bags from bags.json`);
+                } else {
+                    throw new Error('Invalid bags.json format');
+                }
+            } catch (error) {
+                console.error('Error loading bags:', error);
+                // Fallback to default items if JSON loading fails
+                items = [
+                    { name: 'Garbage Bags - Blue', price: 15.99, color: '#3498db', size: '45x48' },
+                    { name: 'Garbage Bags - Green', price: 15.99, color: '#27ae60', size: '45x48' },
+                    { name: 'Garbage Bags - Pink', price: 15.99, color: '#e91e63', size: '45x48' },
+                    { name: 'Garbage Bags - Brown', price: 15.99, color: '#8d6e63', size: '45x48' }
+                ];
+                console.log('Using fallback items');
+            }
+            
+            // Generate the items grid after loading bags
+            generateItemsGrid();
+        }
+
+        function loadClients() {
+            // Load clients from localStorage
+            const savedClients = localStorage.getItem('paymentRequestClients');
+            if (savedClients) {
+                clients = JSON.parse(savedClients);
+            } else {
+                // Default clients
+                clients = [
+                    { name: 'John Smith', phone: '0412 345 678', email: 'john@example.com' },
+                    { name: 'Sarah Johnson', phone: '0423 456 789', email: 'sarah@example.com' },
+                    { name: 'Mike Wilson', phone: '0434 567 890', email: 'mike@example.com' }
+                ];
+                // Save default clients
+                localStorage.setItem('paymentRequestClients', JSON.stringify(clients));
+            }
+            
+            renderClients();
+        }
+
+        function renderClients() {
+            const clientsList = document.getElementById('clientsList');
+            clientsList.innerHTML = '';
+            
+            clients.forEach((client, index) => {
+                const clientItem = document.createElement('div');
+                clientItem.className = 'client-item';
+                clientItem.onclick = () => selectClient(index);
+                clientItem.innerHTML = `
+                    <strong>${client.name}</strong><br>
+                    <small>${client.phone} • ${client.email}</small>
+                `;
+                clientsList.appendChild(clientItem);
+            });
+        }
+
+        function selectClient(index) {
+            // Remove previous selection
+            document.querySelectorAll('.client-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // Select new client
+            document.querySelector('.clients-list').children[index].classList.add('selected');
+            selectedClient = clients[index];
+            
+            // Enable next button
+            document.getElementById('nextStep1').disabled = false;
+        }
+
+        function toggleAddClient() {
+            const form = document.getElementById('addClientForm');
+            form.classList.toggle('active');
+        }
+
+        function addNewClient() {
+            const name = document.getElementById('newClientName').value.trim();
+            const phone = document.getElementById('newClientPhone').value.trim();
+            const email = document.getElementById('newClientEmail').value.trim();
+            
+            if (!name || !phone || !email) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            const newClient = { name, phone, email };
+            clients.push(newClient);
+            
+            // Save to localStorage
+            localStorage.setItem('paymentRequestClients', JSON.stringify(clients));
+            
+            // Clear form and hide it
+            document.getElementById('newClientName').value = '';
+            document.getElementById('newClientPhone').value = '';
+            document.getElementById('newClientEmail').value = '';
+            document.getElementById('addClientForm').classList.remove('active');
+            
+            // Reload clients and select the new one
+            renderClients();
+            selectClient(clients.length - 1);
+        }
+
+        function generateItemsGrid() {
+            const itemsGrid = document.getElementById('itemsGrid');
+            itemsGrid.innerHTML = '';
+            
+            items.forEach((item, index) => {
+                const itemCard = document.createElement('div');
+                itemCard.className = 'item-card';
+                itemCard.onclick = () => toggleItemSelection(index);
+                itemCard.innerHTML = `
+                    <div style="width: 60px; height: 60px; background: ${item.color}; border-radius: 50%; margin: 0 auto 10px;"></div>
+                    <h3>${item.name}</h3>
+                    <div class="size">Size: ${item.size}</div>
+                    <div class="price">€${item.price.toFixed(2)}</div>
+                    <div class="quantity-input" style="display: none;">
+                        <div class="input-row">
+                            <label onclick="event.stopPropagation()">Quantity:</label>
+                            <input type="number" min="1" value="1" class="quantity-input-field" onchange="updateItemQuantity(${index}, this.value)" onclick="event.stopPropagation()">
+                        </div>
+                        <div class="input-row">
+                            <label onclick="event.stopPropagation()">Unit Price:</label>
+                            <input type="number" min="0" step="0.01" value="${item.price.toFixed(2)}" class="unit-price-input" onchange="updateItemUnitPrice(${index}, this.value)" onclick="event.stopPropagation()">
+                        </div>
+                    </div>
+                `;
+                itemsGrid.appendChild(itemCard);
+            });
+        }
+
+        function toggleItemSelection(index) {
+            const itemCard = document.querySelectorAll('.item-card')[index];
+            const quantityInput = itemCard.querySelector('.quantity-input');
+            
+            if (itemCard.classList.contains('selected')) {
+                // Deselect item
+                itemCard.classList.remove('selected');
+                quantityInput.style.display = 'none';
+                selectedItems = selectedItems.filter(item => item.index !== index);
+            } else {
+                // Select item
+                itemCard.classList.add('selected');
+                quantityInput.style.display = 'block';
+                const quantity = parseInt(quantityInput.querySelector('.quantity-input-field').value);
+                const unitPrice = parseFloat(quantityInput.querySelector('.unit-price-input').value);
+                selectedItems.push({
+                    index: index,
+                    item: items[index],
+                    quantity: quantity,
+                    unitPrice: unitPrice
+                });
+            }
+            
+            // Enable/disable next button
+            document.getElementById('nextStep2').disabled = selectedItems.length === 0;
+        }
+
+        function updateItemQuantity(index, quantity) {
+            const selectedItem = selectedItems.find(item => item.index === index);
+            if (selectedItem) {
+                selectedItem.quantity = parseInt(quantity);
+            }
+        }
+
+        function updateItemUnitPrice(index, unitPrice) {
+            const selectedItem = selectedItems.find(item => item.index === index);
+            if (selectedItem) {
+                selectedItem.unitPrice = parseFloat(unitPrice);
+            }
+        }
+
+        function selectTerms(element, terms) {
+            // Remove previous selection
+            document.querySelectorAll('.terms-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Select new terms
+            element.classList.add('selected');
+            selectedTerms = terms;
+            
+            // Enable next button
+            document.getElementById('nextStep3').disabled = false;
+        }
+
+        function nextStep() {
+            if (currentStep < 4) {
+                currentStep++;
+                updateStepDisplay();
+            }
+        }
+
+        function previousStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                updateStepDisplay();
+            }
+        }
+
+        function updateStepDisplay() {
+            // Update step indicators
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < currentStep) {
+                    step.className = 'step completed';
+                } else if (i === currentStep) {
+                    step.className = 'step active';
+                } else {
+                    step.className = 'step';
+                }
+            }
+            
+            // Update step content
+            for (let i = 1; i <= 4; i++) {
+                const content = document.getElementById(`step${i}-content`);
+                if (i === currentStep) {
+                    content.className = 'step-content active';
+                } else {
+                    content.className = 'step-content';
+                }
+            }
+            
+            // Generate summary if on step 4
+            if (currentStep === 4) {
+                generateSummary();
+            }
+        }
+
+        function generateSummary() {
+            const summary = document.getElementById('requestSummary');
+            let total = 0;
+            
+            let summaryHTML = `
+                <h3>Payment Request Summary</h3>
+                <div class="summary-item">
+                    <span><strong>Client:</strong></span>
+                    <span>${selectedClient.name}</span>
+                </div>
+                <div class="summary-item">
+                    <span><strong>Payment Terms:</strong></span>
+                    <span>${selectedTerms}</span>
+                </div>
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #d4edda;">
+            `;
+            
+            selectedItems.forEach(selectedItem => {
+                const itemTotal = selectedItem.unitPrice * selectedItem.quantity;
+                total += itemTotal;
+                
+                summaryHTML += `
+                    <div class="summary-item">
+                        <span>${selectedItem.item.name} (${selectedItem.quantity}x @ €${selectedItem.unitPrice.toFixed(2)})</span>
+                        <span>€${itemTotal.toFixed(2)}</span>
+                    </div>
+                `;
+            });
+            
+            summaryHTML += `
+                <div class="summary-item">
+                    <span><strong>Total Amount:</strong></span>
+                    <span><strong>€${total.toFixed(2)}</strong></span>
+                </div>
+            `;
+            
+            summary.innerHTML = summaryHTML;
+        }
+
+        function generatePDF() {
+            try {
+                // Use jsPDF from CDN
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                
+                // Add content to PDF
+                doc.setFontSize(20);
+                doc.text('PAYMENT REQUEST', 20, 30);
+                
+                doc.setFontSize(12);
+                doc.text(`Client: ${selectedClient.name}`, 20, 50);
+                doc.text(`Phone: ${selectedClient.phone}`, 20, 60);
+                doc.text(`Email: ${selectedClient.email}`, 20, 70);
+                doc.text(`Terms: ${selectedTerms}`, 20, 80);
+                
+                let y = 100;
+                doc.text('Items:', 20, y);
+                y += 10;
+                
+                let total = 0;
+                selectedItems.forEach(selectedItem => {
+                    const itemTotal = selectedItem.unitPrice * selectedItem.quantity;
+                    total += itemTotal;
+                    
+                    doc.text(`${selectedItem.item.name} - ${selectedItem.quantity}x @ €${selectedItem.unitPrice.toFixed(2)} = €${itemTotal.toFixed(2)}`, 20, y);
+                    y += 10;
+                });
+                
+                doc.setFontSize(14);
+                doc.text(`Total: €${total.toFixed(2)}`, 20, y + 10);
+                
+                // Save PDF
+                const filename = `payment-request-${selectedClient.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+                
+                // Show success message
+                const result = document.getElementById('result');
+                result.className = 'result success';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>✅ PDF Generated Successfully!</h3>
+                    <p><strong>Client:</strong> ${selectedClient.name}</p>
+                    <p><strong>Total Amount:</strong> €${total.toFixed(2)}</p>
+                    <p><strong>PDF Downloaded:</strong> ${filename}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Error generating PDF:', error);
+                const result = document.getElementById('result');
+                result.className = 'result error';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>❌ Error Generating PDF</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        function exportData() {
+            const data = {
+                clients: clients,
+                exportDate: new Date().toISOString()
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'payment-request-data.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearData() {
+            if (confirm('Are you sure you want to clear all data? This cannot be undone.')) {
+                localStorage.removeItem('paymentRequestClients');
+                clients = [];
+                selectedClient = null;
+                selectedItems = [];
+                selectedTerms = '';
+                currentStep = 1;
+                
+                // Reset UI
+                updateStepDisplay();
+                renderClients();
+                document.getElementById('nextStep1').disabled = true;
+                
+                alert('All data has been cleared.');
+            }
+        }
+    </script>
+</body>
+</html>
