@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Simple Payment Request - Static Version</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -501,51 +502,8 @@
             </div>
 
             <!-- Hidden PDF Template -->
-            <div id="pdfTemplate" style="display: none; padding: 40px; font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto;">
-                <div style="text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 20px; margin-bottom: 30px;">
-                    <h1 style="color: #2c3e50; margin: 0; font-size: 32px;">💰 PAYMENT REQUEST</h1>
-                    <p style="color: #7f8c8d; margin: 10px 0 0 0; font-size: 16px;">Professional Payment Request</p>
-                </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <h2 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;">Client Information</h2>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                        <div>
-                            <strong style="color: #34495e;">Name:</strong>
-                            <p id="pdfClientName" style="margin: 5px 0; color: #2c3e50;"></p>
-                        </div>
-                        <div>
-                            <strong style="color: #34495e;">Phone:</strong>
-                            <p id="pdfClientPhone" style="margin: 5px 0; color: #2c3e50;"></p>
-                        </div>
-                        <div>
-                            <strong style="color: #34495e;">Email:</strong>
-                            <p id="pdfClientEmail" style="margin: 5px 0; color: #2c3e50;"></p>
-                        </div>
-                        <div>
-                            <strong style="color: #34495e;">Date:</strong>
-                            <p id="pdfDate" style="margin: 5px 0; color: #2c3e50;"></p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <h2 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;">Payment Terms</h2>
-                    <p id="pdfTerms" style="color: #2c3e50; font-size: 16px; background: #f8f9fa; padding: 15px; border-radius: 8px; margin: 0;"></p>
-                </div>
-                
-                <div style="margin-bottom: 30px;">
-                    <h2 style="color: #2c3e50; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px;">Items & Pricing</h2>
-                    <div id="pdfItems" style="margin-bottom: 20px;"></div>
-                    <div style="text-align: right; border-top: 2px solid #ecf0f1; padding-top: 20px;">
-                        <h3 style="color: #27ae60; margin: 0; font-size: 24px;">Total Amount: €<span id="pdfTotal">0.00</span></h3>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 3px solid #3498db; text-align: center;">
-                    <p style="color: #7f8c8d; margin: 0; font-size: 14px;">Thank you for your business!</p>
-                    <p style="color: #7f8c8d; margin: 5px 0 0 0; font-size: 12px;">Generated on <span id="pdfGeneratedDate"></span></p>
-                </div>
+            <div id="pdfTemplate" style="display: none;">
+                <!-- This will be used for future enhancements -->
             </div>
         </div>
     </div>
@@ -844,93 +802,133 @@
 
         function generatePDF() {
             try {
-                // Populate the PDF template
-                const template = document.getElementById('pdfTemplate');
-                const clientName = document.getElementById('pdfClientName');
-                const clientPhone = document.getElementById('pdfClientPhone');
-                const clientEmail = document.getElementById('pdfClientEmail');
-                const date = document.getElementById('pdfDate');
-                const terms = document.getElementById('pdfTerms');
-                const items = document.getElementById('pdfItems');
-                const total = document.getElementById('pdfTotal');
-                const generatedDate = document.getElementById('pdfGeneratedDate');
+                // Create new jsPDF document
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
                 
-                // Set client information
-                clientName.textContent = selectedClient.name;
-                clientPhone.textContent = selectedClient.phone;
-                clientEmail.textContent = selectedClient.email;
-                date.textContent = new Date().toLocaleDateString('en-GB', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                });
-                terms.textContent = selectedTerms;
-                generatedDate.textContent = new Date().toLocaleDateString('en-GB', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                // Generate items HTML
-                let itemsHTML = '';
+                // Calculate total
                 let totalAmount = 0;
-                
-                selectedItems.forEach(selectedItem => {
-                    const itemTotal = selectedItem.unitPrice * selectedItem.quantity;
-                    totalAmount += itemTotal;
-                    
-                    itemsHTML += `
-                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #ecf0f1;">
-                            <div style="flex: 1;">
-                                <h4 style="margin: 0 0 5px 0; color: #2c3e50;">${selectedItem.item.name}</h4>
-                                <p style="margin: 0; color: #7f8c8d; font-size: 14px;">Size: ${selectedItem.item.size}</p>
-                            </div>
-                            <div style="text-align: right; min-width: 200px;">
-                                <p style="margin: 0 0 5px 0; color: #2c3e50;">
-                                    ${selectedItem.quantity} × €${selectedItem.unitPrice.toFixed(2)}
-                                </p>
-                                <h4 style="margin: 0; color: #27ae60; font-size: 18px;">€${itemTotal.toFixed(2)}</h4>
-                            </div>
-                        </div>
-                    `;
+                selectedItems.forEach(item => {
+                    totalAmount += item.unitPrice * item.quantity;
                 });
                 
-                items.innerHTML = itemsHTML;
-                total.textContent = totalAmount.toFixed(2);
+                // Header
+                doc.setFillColor(52, 152, 219); // Blue
+                doc.rect(0, 0, 210, 40, 'F');
                 
-                // Configure html2pdf options
-                const opt = {
-                    margin: [10, 10, 10, 10],
-                    filename: `payment-request-${selectedClient.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { 
-                        scale: 2,
-                        useCORS: true,
-                        letterRendering: true
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(24);
+                doc.text('💰 PAYMENT REQUEST', 105, 20, { align: 'center' });
+                doc.setFontSize(12);
+                doc.text('Professional Payment Request System', 105, 30, { align: 'center' });
+                
+                // Reset text color
+                doc.setTextColor(0, 0, 0);
+                
+                // Client Information Section
+                doc.setFontSize(16);
+                doc.setFillColor(236, 240, 241); // Light gray
+                doc.rect(10, 50, 190, 30, 'F');
+                doc.text('Client Information', 15, 60);
+                
+                doc.setFontSize(10);
+                doc.text(`Name: ${selectedClient.name}`, 15, 75);
+                doc.text(`Phone: ${selectedClient.phone}`, 15, 82);
+                doc.text(`Email: ${selectedClient.email}`, 15, 89);
+                doc.text(`Date: ${new Date().toLocaleDateString('en-GB')}`, 110, 75);
+                
+                // Payment Terms Section
+                doc.setFontSize(16);
+                doc.setFillColor(236, 240, 241);
+                doc.rect(10, 90, 190, 20, 'F');
+                doc.text('Payment Terms', 15, 100);
+                
+                doc.setFontSize(10);
+                doc.text(selectedTerms, 15, 110);
+                
+                // Items Table
+                doc.setFontSize(16);
+                doc.setFillColor(236, 240, 241);
+                doc.rect(10, 120, 190, 20, 'F');
+                doc.text('Items & Pricing', 15, 130);
+                
+                // Prepare table data
+                const tableData = selectedItems.map(item => [
+                    item.item.name,
+                    item.item.size,
+                    item.quantity.toString(),
+                    `€${item.unitPrice.toFixed(2)}`,
+                    `€${(item.unitPrice * item.quantity).toFixed(2)}`
+                ]);
+                
+                // Add total row
+                tableData.push(['', '', '', 'TOTAL:', `€${totalAmount.toFixed(2)}`]);
+                
+                // Create professional table
+                doc.autoTable({
+                    startY: 140,
+                    head: [['Item', 'Size', 'Qty', 'Unit Price', 'Total']],
+                    body: tableData,
+                    theme: 'grid',
+                    headStyles: {
+                        fillColor: [52, 152, 219],
+                        textColor: [255, 255, 255],
+                        fontSize: 11,
+                        fontStyle: 'bold'
                     },
-                    jsPDF: { 
-                        unit: 'mm', 
-                        format: 'a4', 
-                        orientation: 'portrait' 
+                    bodyStyles: {
+                        fontSize: 10
+                    },
+                    alternateRowStyles: {
+                        fillColor: [248, 249, 250]
+                    },
+                    styles: {
+                        cellPadding: 5,
+                        lineWidth: 0.1
+                    },
+                    columnStyles: {
+                        0: { cellWidth: 60 }, // Item name
+                        1: { cellWidth: 25 }, // Size
+                        2: { cellWidth: 20 }, // Quantity
+                        3: { cellWidth: 30 }, // Unit price
+                        4: { cellWidth: 30 }  // Total
+                    },
+                    didParseCell: function(data) {
+                        // Style the total row
+                        if (data.row.index === tableData.length - 1) {
+                            data.cell.styles.fontStyle = 'bold';
+                            data.cell.styles.fontSize = 12;
+                            data.cell.styles.fillColor = [39, 174, 96]; // Green
+                            data.cell.styles.textColor = [255, 255, 255];
+                        }
                     }
-                };
-                
-                // Generate PDF
-                html2pdf().set(opt).from(template).save().then(() => {
-                    // Show success message
-                    const result = document.getElementById('result');
-                    result.className = 'result success';
-                    result.style.display = 'block';
-                    result.innerHTML = `
-                        <h3>✅ Professional PDF Generated!</h3>
-                        <p><strong>Client:</strong> ${selectedClient.name}</p>
-                        <p><strong>Total Amount:</strong> €${totalAmount.toFixed(2)}</p>
-                        <p><strong>PDF Downloaded:</strong> ${opt.filename}</p>
-                        <p style="font-size: 0.9rem; opacity: 0.8;">This PDF has a professional design with proper formatting and styling.</p>
-                    `;
                 });
+                
+                // Footer
+                const finalY = doc.lastAutoTable.finalY + 20;
+                doc.setFillColor(52, 152, 219);
+                doc.rect(10, finalY, 190, 25, 'F');
+                
+                doc.setTextColor(255, 255, 255);
+                doc.setFontSize(10);
+                doc.text('Thank you for your business!', 105, finalY + 10, { align: 'center' });
+                doc.text(`Generated on ${new Date().toLocaleDateString('en-GB')} at ${new Date().toLocaleTimeString('en-GB')}`, 105, finalY + 18, { align: 'center' });
+                
+                // Save PDF
+                const filename = `payment-request-${selectedClient.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+                doc.save(filename);
+                
+                // Show success message
+                const result = document.getElementById('result');
+                result.className = 'result success';
+                result.style.display = 'block';
+                result.innerHTML = `
+                    <h3>✅ Professional Invoice PDF Generated!</h3>
+                    <p><strong>Client:</strong> ${selectedClient.name}</p>
+                    <p><strong>Total Amount:</strong> €${totalAmount.toFixed(2)}</p>
+                    <p><strong>PDF Downloaded:</strong> ${filename}</p>
+                    <p style="font-size: 0.9rem; opacity: 0.8;">This PDF has a professional invoice design with proper tables and formatting.</p>
+                `;
                 
             } catch (error) {
                 console.error('Error generating PDF:', error);
